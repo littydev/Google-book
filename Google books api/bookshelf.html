@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Bookshelf</title>
+  <style>
+    body { font-family: Arial; padding: 2em; }
+    .book { display: flex; margin: 1em 0; padding: 1em; background: #f4f4f4; }
+    .book img { margin-right: 1em; height: 120px; }
+    .book-info { flex: 1; }
+    button { padding: 6px 12px; margin-top: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>My Bookshelf</h1>
+  <a href="index.html">← Back to Search</a>
+  <div id="bookshelf"></div>
+
+  <script>
+    function loadBookshelf() {
+      const shelf = document.getElementById('bookshelf');
+      const saved = JSON.parse(localStorage.getItem('bookshelf')) || [];
+
+      if (saved.length === 0) {
+        shelf.innerHTML = "<p>No books saved.</p>";
+        return;
+      }
+
+      saved.forEach(book => {
+        const info = book.volumeInfo;
+        const container = document.createElement('div');
+        container.className = 'book';
+
+        const img = document.createElement('img');
+        img.src = info.imageLinks?.thumbnail || '';
+        container.appendChild(img);
+
+        const details = document.createElement('div');
+        details.className = 'book-info';
+        details.innerHTML = `
+          <strong>${info.title}</strong><br>
+          <em>${info.authors?.join(', ') || "Unknown Author"}</em><br>
+          <p>${info.description?.slice(0, 150) || "No description."}...</p>
+        `;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = "Remove";
+        removeBtn.onclick = () => removeBook(book.id);
+        details.appendChild(removeBtn);
+
+        container.appendChild(details);
+        shelf.appendChild(container);
+      });
+    }
+
+    function removeBook(id) {
+      let saved = JSON.parse(localStorage.getItem('bookshelf')) || [];
+      saved = saved.filter(b => b.id !== id);
+      localStorage.setItem('bookshelf', JSON.stringify(saved));
+      location.reload();
+    }
+
+    loadBookshelf();
+  </script>
+</body>
+</html>

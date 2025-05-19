@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Google Books Search</title>
+  <style>
+    body { font-family: Arial; padding: 2em; }
+    .book { display: flex; margin: 1em 0; padding: 1em; background: #f4f4f4; }
+    .book img { margin-right: 1em; height: 120px; }
+    .book-info { flex: 1; }
+    button { padding: 6px 12px; margin-top: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>Google Books Search</h1>
+  <input type="text" id="query" placeholder="Search books">
+  <button onclick="searchBooks()">Search</button>
+  <a href="bookshelf.html" style="margin-left: 20px;">View My Bookshelf</a>
+
+  <div id="results"></div>
+
+  <script>
+    function searchBooks() {
+      const query = document.getElementById('query').value;
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = "Loading...";
+
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`)
+        .then(res => res.json())
+        .then(data => {
+          resultsDiv.innerHTML = "";
+          if (!data.items) {
+            resultsDiv.textContent = "No books found.";
+            return;
+          }
+
+          data.items.forEach(book => {
+            const info = book.volumeInfo;
+            const container = document.createElement('div');
+            container.className = 'book';
+
+            const img = document.createElement('img');
+            img.src = info.imageLinks?.thumbnail || '';
+            container.appendChild(img);
+
+            const details = document.createElement('div');
+            details.className = 'book-info';
+            details.innerHTML = `
+              <strong>${info.title}</strong><br>
+              <em>${info.authors?.join(', ') || "Unknown Author"}</em><br>
+              <p>${info.description?.slice(0, 150) || "No description."}...</p>
+            `;
+
+            const saveBtn = document.createElement('button');
+            saveBtn.textContent = "Save to Bookshelf";
+            saveBtn.onclick = () => saveBook(book);
+            details.appendChild(saveBtn);
+
+            container.appendChild(details);
+            resultsDiv.appendChild(container);
+          });
+        });
+    }
+
+    function saveBook(book) {
+      let saved = JSON.parse(localStorage.getItem('bookshelf')) || [];
+      if (!saved.find(b => b.id === book.id)) {
+        saved.push(book);
+        localStorage.setItem('bookshelf', JSON.stringify(saved));
+        alert("Book saved!");
+      } else {
+        alert("Already in bookshelf.");
+      }
+    }
+  </script>
+</body>
+</html>
